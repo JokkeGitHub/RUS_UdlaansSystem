@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Data.SqlClient;
 using System.Data;
+using System.Configuration;
 
 namespace UdlaansSystem
 {
@@ -22,6 +23,8 @@ namespace UdlaansSystem
     /// </summary>
     public partial class SearchDatabase : Page
     {
+        static SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["RUS_UdlaanSystem"].ConnectionString);
+
         public SearchDatabase()
         {
             InitializeComponent();
@@ -31,140 +34,165 @@ namespace UdlaansSystem
 
         private void BtnShowLoaners_Click(object sender, RoutedEventArgs e)
         {
-            string title;
-            LoanerColumns();
-
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT * FROM Loaner";
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                if (dataRow["isStudent"].ToString() == "True")
+                string title;
+                LoanerColumns();
+
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT * FROM Loaner";
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
                 {
-                    title = "Elev";
-                }
-                else
-                {
-                    title = "Lærer";
+                    if (dataRow["isStudent"].ToString() == "True")
+                    {
+                        title = "Elev";
+                    }
+                    else
+                    {
+                        title = "Lærer";
+                    }
+
+                    DataGridView.Items.Add(new { Column1 = dataRow["login"].ToString(), Column2 = dataRow["name"].ToString(), Column3 = dataRow["phone"].ToString(), Column4 = title });
                 }
 
-                DataGridView.Items.Add(new { Column1 = dataRow["login"].ToString(), Column2 = dataRow["name"].ToString(), Column3 = dataRow["phone"].ToString(), Column4 = title });
+                conn.Close();
             }
-
-            conn.Close();
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
         }
 
         private void BtnShowPCs_Click(object sender, RoutedEventArgs e)
         {
-            PCColumns();
-
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT * FROM PC";
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                DataGridView.Items.Add(new { Column1 = dataRow["qrId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["serial"].ToString() });
-            }
+                PCColumns();
 
-            conn.Close();
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT * FROM PC";
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    DataGridView.Items.Add(new { Column1 = dataRow["qrId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["serial"].ToString() });
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
         }
 
         private void BtnShowLoans_Click(object sender, RoutedEventArgs e)
         {
-            LoanColumns();
-
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT * FROM ((Loan INNER JOIN Loaner ON Loan.uniLogin = Loaner.login) INNER JOIN PC ON Loan.qrId = PC.qrId)";
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                DataGridView.Items.Add(new { Column1 = dataRow["loanId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["qrId"].ToString(), Column4 = dataRow["startDate"].ToString().Remove(dataRow["startDate"].ToString().Length - 8), Column5 = dataRow["endDate"].ToString().Remove(dataRow["endDate"].ToString().Length - 8), Column6 = dataRow["uniLogin"].ToString(), Column7 = dataRow["name"].ToString(), Column8 = dataRow["phone"].ToString() });
-            }
+                LoanColumns();
 
-            conn.Close();
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT * FROM ((Loan INNER JOIN Loaner ON Loan.uniLogin = Loaner.login) INNER JOIN PC ON Loan.qrId = PC.qrId)";
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    DataGridView.Items.Add(new { Column1 = dataRow["loanId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["qrId"].ToString(), Column4 = dataRow["startDate"].ToString().Remove(dataRow["startDate"].ToString().Length - 8), Column5 = dataRow["endDate"].ToString().Remove(dataRow["endDate"].ToString().Length - 8), Column6 = dataRow["uniLogin"].ToString(), Column7 = dataRow["name"].ToString(), Column8 = dataRow["phone"].ToString() });
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
         }
 
         private void BtnShowExpired_Click(object sender, RoutedEventArgs e)
         {
-            LoanColumns();
-
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT * FROM ((Loan INNER JOIN Loaner ON Loan.uniLogin = Loaner.login) INNER JOIN PC ON Loan.qrId = PC.qrId)";
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                if ((DateTime)dataRow["endDate"] <= DateTime.Now)
-                {
-                    DataGridView.Items.Add(new { Column1 = dataRow["loanId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["qrId"].ToString(), Column4 = dataRow["startDate"].ToString().Remove(dataRow["startDate"].ToString().Length - 8), Column5 = dataRow["endDate"].ToString().Remove(dataRow["endDate"].ToString().Length - 8), Column6 = dataRow["uniLogin"].ToString(), Column7 = dataRow["name"].ToString(), Column8 = dataRow["phone"].ToString() });
-                }
-            }
+                LoanColumns();
 
-            conn.Close();
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT * FROM ((Loan INNER JOIN Loaner ON Loan.uniLogin = Loaner.login) INNER JOIN PC ON Loan.qrId = PC.qrId)";
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    DateTime date = Convert.ToDateTime(dataRow["endDate"]);
+                    if (date <= DateTime.Now)
+                    {
+                        DataGridView.Items.Add(new { Column1 = dataRow["loanId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["qrId"].ToString(), Column4 = dataRow["startDate"].ToString().Remove(dataRow["startDate"].ToString().Length - 8), Column5 = dataRow["endDate"].ToString().Remove(dataRow["endDate"].ToString().Length - 8), Column6 = dataRow["uniLogin"].ToString(), Column7 = dataRow["name"].ToString(), Column8 = dataRow["phone"].ToString() });
+                    }
+                }
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
         }
 
         private void BtnShowAvailablePCs_Click(object sender, RoutedEventArgs e)
         {
-            PCColumns();
-
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT * FROM PC WHERE NOT EXISTS (SELECT * FROM Loan WHERE qrId = PC.qrId)";
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                DataGridView.Items.Add(new { Column1 = dataRow["qrId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["serial"].ToString() });
-            }
+                PCColumns();
 
-            conn.Close();
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT * FROM PC WHERE NOT EXISTS (SELECT * FROM Loan WHERE qrId = PC.qrId)";
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    DataGridView.Items.Add(new { Column1 = dataRow["qrId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["serial"].ToString() });
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
         }
 
         #endregion
@@ -184,31 +212,36 @@ namespace UdlaansSystem
 
         public void UserInputSearch()
         {
-            string input = BtnSearchInput.Text.ToLower();
-            LoanColumns();
-
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT * FROM ((Loan INNER JOIN Loaner ON Loan.uniLogin = Loaner.login) INNER JOIN PC ON Loan.qrId = PC.qrId)";
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                if (dataRow["loanId"].ToString().ToLower().Contains(input) || dataRow["model"].ToString().ToLower().Contains(input) || dataRow["qrId"].ToString().ToLower().Contains(input) || dataRow["uniLogin"].ToString().ToLower().Contains(input) || dataRow["name"].ToString().ToLower().Contains(input) || dataRow["phone"].ToString().ToLower().Contains(input))
-                {
-                    DataGridView.Items.Add(new { Column1 = dataRow["loanId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["qrId"].ToString(), Column4 = dataRow["startDate"].ToString().Remove(dataRow["startDate"].ToString().Length - 8), Column5 = dataRow["endDate"].ToString().Remove(dataRow["endDate"].ToString().Length - 8), Column6 = dataRow["uniLogin"].ToString(), Column7 = dataRow["name"].ToString(), Column8 = dataRow["phone"].ToString() });
-                }
-            }
+                string input = BtnSearchInput.Text.ToLower();
+                LoanColumns();
 
-            conn.Close();
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT * FROM ((Loan INNER JOIN Loaner ON Loan.uniLogin = Loaner.login) INNER JOIN PC ON Loan.qrId = PC.qrId)";
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    if (dataRow["loanId"].ToString().ToLower().Contains(input) || dataRow["model"].ToString().ToLower().Contains(input) || dataRow["qrId"].ToString().ToLower().Contains(input) || dataRow["uniLogin"].ToString().ToLower().Contains(input) || dataRow["name"].ToString().ToLower().Contains(input) || dataRow["phone"].ToString().ToLower().Contains(input))
+                    {
+                        DataGridView.Items.Add(new { Column1 = dataRow["loanId"].ToString(), Column2 = dataRow["model"].ToString(), Column3 = dataRow["qrId"].ToString(), Column4 = dataRow["startDate"].ToString().Remove(dataRow["startDate"].ToString().Length - 8), Column5 = dataRow["endDate"].ToString().Remove(dataRow["endDate"].ToString().Length - 8), Column6 = dataRow["uniLogin"].ToString(), Column7 = dataRow["name"].ToString(), Column8 = dataRow["phone"].ToString() });
+                    }
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
         }
 
         #endregion

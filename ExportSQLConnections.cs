@@ -6,85 +6,104 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace UdlaansSystem
 {
     class ExportSQLConnections
     {
+        static SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["RUS_UdlaanSystem"].ConnectionString);
+
         #region LOANER TABLE
 
         public static void CreateLoaner(string _uniLogin, string _name, string _phone, int _isStudent)
         {
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-            SqlCommand cmd = new SqlCommand();
+            try
+            {
+                SqlCommand cmd = new SqlCommand();
 
-            cmd.Connection = conn;
+                cmd.Connection = conn;
 
-            cmd.CommandText = @"INSERT INTO Loaner(login, name, phone, isStudent) VALUES (@login, @name, @phone, @isStudent)";
-            cmd.Parameters.AddWithValue("@login", _uniLogin);
-            cmd.Parameters.AddWithValue("@name", _name);
-            cmd.Parameters.AddWithValue("@phone", _phone);
-            cmd.Parameters.AddWithValue("@isStudent", _isStudent);
+                cmd.CommandText = @"INSERT INTO Loaner(login, name, phone, isStudent) VALUES (@login, @name, @phone, @isStudent)";
+                cmd.Parameters.AddWithValue("@login", _uniLogin);
+                cmd.Parameters.AddWithValue("@name", _name);
+                cmd.Parameters.AddWithValue("@phone", _phone);
+                cmd.Parameters.AddWithValue("@isStudent", _isStudent);
 
-            conn.Open();
-            SqlDataReader reader = cmd.ExecuteReader();
-            conn.Close();
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
         }
         public static bool CheckDatabaseForLogin(string uniLogin)
         {
             bool uniLoginExists = false;
 
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT (login) FROM Loaner WHERE (login) = (@login);";
-            cmd.Parameters.AddWithValue("@login", uniLogin);
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                if (dataRow["login"].ToString() == uniLogin.ToLower())
-                {
-                    uniLoginExists = true;
-                }
-            }
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
 
-            conn.Close();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT (login) FROM Loaner WHERE (login) = (@login);";
+                cmd.Parameters.AddWithValue("@login", uniLogin);
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    if (dataRow["login"].ToString() == uniLogin.ToLower())
+                    {
+                        uniLoginExists = true;
+                    }
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
             return uniLoginExists;
         }
 
         public static int CheckDataBaseForIsStudent(int isStudent, string uniLogin)
-        {            
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT (login), isStudent FROM Loaner WHERE (login) = (@login);";
-            cmd.Parameters.AddWithValue("@login", uniLogin);
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+        {
+            try
             {
-                if (dataRow["login"].ToString() == uniLogin.ToLower())
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT (login), isStudent FROM Loaner WHERE (login) = (@login);";
+                cmd.Parameters.AddWithValue("@login", uniLogin);
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
                 {
-                    isStudent = Convert.ToInt32(dataRow["isStudent"]);
+                    if (dataRow["login"].ToString() == uniLogin.ToLower())
+                    {
+                        isStudent = Convert.ToInt32(dataRow["isStudent"]);
+                    }
                 }
+
+                conn.Close();
             }
-            
-            conn.Close();
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
             return isStudent;
         }
 
@@ -94,50 +113,61 @@ namespace UdlaansSystem
 
         public static void CreateLoan(string _uniLogin, string _qrId, DateTime _startDate, DateTime _endDate)
         {
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-            SqlCommand cmd = new SqlCommand();
+            try
+            {
+                SqlCommand cmd = new SqlCommand();
 
-            cmd.Connection = conn;
+                cmd.Connection = conn;
 
-            cmd.CommandText = @"INSERT INTO Loan(uniLogin, qrId, startDate, endDate) VALUES ((SELECT login FROM Loaner WHERE login = @login), (SELECT qrId FROM PC WHERE qrId = @qrId), @startDate, @endDate)";
-            cmd.Parameters.AddWithValue("@login", _uniLogin);
-            cmd.Parameters.AddWithValue("@qrId", _qrId);
-            cmd.Parameters.AddWithValue("@startDate", _startDate);
-            cmd.Parameters.AddWithValue("@endDate", _endDate);
+                cmd.CommandText = @"INSERT INTO Loan(uniLogin, qrId, startDate, endDate) VALUES ((SELECT login FROM Loaner WHERE login = @login), (SELECT qrId FROM PC WHERE qrId = @qrId), @startDate, @endDate)";
+                cmd.Parameters.AddWithValue("@login", _uniLogin);
+                cmd.Parameters.AddWithValue("@qrId", _qrId);
+                cmd.Parameters.AddWithValue("@startDate", _startDate);
+                cmd.Parameters.AddWithValue("@endDate", _endDate);
 
-            conn.Open();
-            SqlDataReader reader = cmd.ExecuteReader();
-            reader.Close();
-            conn.Close();
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+                reader.Close();
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
         }
 
         public static string GetLoanInfo(string uniLogin)
         {
             string activeLoanInfo = "";
 
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT loanId, (uniLogin), qrId, startDate, endDate FROM Loan WHERE (uniLogin) = (@uniLogin);";
-            cmd.Parameters.AddWithValue("@uniLogin", uniLogin);
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                if (dataRow["uniLogin"].ToString() == uniLogin.ToLower())
-                {
-                    activeLoanInfo = $"Lån ID: { dataRow["loanId"] } \nUNI Login: { dataRow["uniLogin"] } \nQR ID: { dataRow["qrId"] } \nStart dato: { dataRow["startDate"].ToString().Remove(dataRow["startDate"].ToString().Length - 8) } \nSlut dato:  { dataRow["endDate"].ToString().Remove(dataRow["endDate"].ToString().Length - 8) }";
-                }
-            }
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
 
-            conn.Close();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT loanId, (uniLogin), qrId, startDate, endDate FROM Loan WHERE (uniLogin) = (@uniLogin);";
+                cmd.Parameters.AddWithValue("@uniLogin", uniLogin);
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    if (dataRow["uniLogin"].ToString() == uniLogin.ToLower())
+                    {
+                        activeLoanInfo = $"Lån ID: { dataRow["loanId"] } \nUNI Login: { dataRow["uniLogin"] } \nQR ID: { dataRow["qrId"] } \nStart dato: { dataRow["startDate"].ToString().Remove(dataRow["startDate"].ToString().Length - 8) } \nSlut dato:  { dataRow["endDate"].ToString().Remove(dataRow["endDate"].ToString().Length - 8) }";
+                    }
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
             return activeLoanInfo;
         }
 
@@ -145,31 +175,36 @@ namespace UdlaansSystem
         {
             bool pcInStock = true;
 
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT (qrId) FROM Loan WHERE (qrId) = (@qrId);";
-            cmd.Parameters.AddWithValue("@qrId", qrId);
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                if (dataRow["qrId"].ToString() == qrId)
-                {
-                    pcInStock = false;
-                    conn.Close();
-                    return pcInStock;
-                }
-            }
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
 
-            conn.Close();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT (qrId) FROM Loan WHERE (qrId) = (@qrId);";
+                cmd.Parameters.AddWithValue("@qrId", qrId);
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    if (dataRow["qrId"].ToString() == qrId)
+                    {
+                        pcInStock = false;
+                        conn.Close();
+                        return pcInStock;
+                    }
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
             return pcInStock;
         }
 
@@ -177,29 +212,34 @@ namespace UdlaansSystem
         {
             string pcNotInStockInfo = "";
 
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT loanId, (qrId) FROM Loan WHERE (qrId) = (@qrId);";
-            cmd.Parameters.AddWithValue("@qrId", qrId);
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                if (dataRow["qrId"].ToString() == qrId)
-                {
-                    pcNotInStockInfo = $"PC'en med QR { dataRow["qrId"] } allerede udlånt! \nLån ID: { dataRow["loanId"] }";
-                }
-            }
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
 
-            conn.Close();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT loanId, (qrId) FROM Loan WHERE (qrId) = (@qrId);";
+                cmd.Parameters.AddWithValue("@qrId", qrId);
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    if (dataRow["qrId"].ToString() == qrId)
+                    {
+                        pcNotInStockInfo = $"PC'en med QR { dataRow["qrId"] } allerede udlånt! \nLån ID: { dataRow["loanId"] }";
+                    }
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
             return pcNotInStockInfo;
         }
 
@@ -211,31 +251,36 @@ namespace UdlaansSystem
         {
             bool pcInStock = false;
 
-            SqlConnection conn = new SqlConnection(@"Database=SKPUdlaanDB;Trusted_Connection=Yes;");
-
-            conn.Open();
-            SqlCommand cmd = conn.CreateCommand();
-
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT (qrId) FROM PC WHERE (qrId) = (@qrId);";
-            cmd.Parameters.AddWithValue("@qrId", qrId);
-            cmd.ExecuteNonQuery();
-
-            DataTable dataTable = new DataTable();
-            SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-
-            dataAdapter.Fill(dataTable);
-            foreach (DataRow dataRow in dataTable.Rows)
+            try
             {
-                if (dataRow["qrId"].ToString() == qrId)
-                {
-                    pcInStock = true;
-                    conn.Close();
-                    return pcInStock;
-                }
-            }
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
 
-            conn.Close();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT (qrId) FROM PC WHERE (qrId) = (@qrId);";
+                cmd.Parameters.AddWithValue("@qrId", qrId);
+                cmd.ExecuteNonQuery();
+
+                DataTable dataTable = new DataTable();
+                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+
+                dataAdapter.Fill(dataTable);
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    if (dataRow["qrId"].ToString() == qrId)
+                    {
+                        pcInStock = true;
+                        conn.Close();
+                        return pcInStock;
+                    }
+                }
+
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Applikationen kunne ikke forbinde til serveren.");
+            }
             return pcInStock;
         }
 
